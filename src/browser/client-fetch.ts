@@ -13,6 +13,13 @@ type LoopbackBrowserAuthDeps = {
   resolveBrowserControlAuth: typeof resolveBrowserControlAuth;
   getBridgeAuthForPort: typeof getBridgeAuthForPort;
 };
+/** Thrown when the browser control service was reached and returned an error response (4xx/5xx). */
+export class BrowserApplicationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "BrowserApplicationError";
+  }
+}
 
 function isAbsoluteHttp(url: string): boolean {
   return /^https?:\/\//i.test(url.trim());
@@ -144,7 +151,7 @@ async function fetchHttpJson<T>(
     const res = await fetch(url, { ...init, signal: ctrl.signal });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(text || `HTTP ${res.status}`);
+      throw new BrowserApplicationError(text || `HTTP ${res.status}`);
     }
     return (await res.json()) as T;
   } finally {
@@ -239,10 +246,13 @@ export async function fetchBrowserJson<T>(
         result.body && typeof result.body === "object" && "error" in result.body
           ? String((result.body as { error?: unknown }).error)
           : `HTTP ${result.status}`;
-      throw new Error(message);
+      throw new BrowserApplicationError(message);
     }
     return result.body as T;
   } catch (err) {
+    if (err instanceof BrowserApplicationError) {
+      throw err;
+    }
     throw enhanceBrowserFetchError(url, err, timeoutMs);
   }
 }

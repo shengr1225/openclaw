@@ -51,15 +51,49 @@ function isLegacyToolExecuteArgs(args: ToolExecuteArgsAny): args is ToolExecuteA
   return isAbortSignal(fifth);
 }
 
+/** Unwrap misleading "Can't reach..." wrapper when the inner error is an application-level error. */
+function unwrapBrowserControlError(msg: string): string {
+  const m = msg.match(/Can't reach the .*? browser control service[\s\S]*\(Error: ([^)]+)\)\s*$/i);
+  if (!m) return msg;
+  const inner = m[1]?.trim() ?? "";
+  // Keep wrapper for true connectivity issues (timeout, connection refused, etc.)
+  const looksLikeConnectivity =
+    /timed?\s*out|timeout|aborted|econnrefused|fetch failed|network|connection/i.test(
+      inner,
+    );
+  return looksLikeConnectivity ? msg : inner;
+}
+
+function normalizeEditToolError(message: string): string {
+  const trimmed = message.trim();
+  if (/Could not find exact text/i.test(trimmed)) {
+    return (
+      `${trimmed} ` +
+      "Run read first and copy exact oldText (including whitespace/newlines) before retrying."
+    );
+  }
+  if (
+    /Missing required parameter:\s*(oldText|newText|path|file_path|old_string|new_string)/i.test(
+      trimmed,
+    ) &&
+    !/Supply correct parameters before retrying\./i.test(trimmed)
+  ) {
+    return `${trimmed}. Supply correct parameters before retrying.`;
+  }
+  return trimmed;
+}
+
 function describeToolExecutionError(err: unknown): {
   message: string;
   stack?: string;
 } {
   if (err instanceof Error) {
-    const message = err.message?.trim() ? err.message : String(err);
+    let message = err.message?.trim() ? err.message : String(err);
+    message = unwrapBrowserControlError(message);
+    message = normalizeEditToolError(message);
     return { message, stack: err.stack };
   }
-  return { message: String(err) };
+  return { message: normalizeEditToolError(unwrapBrowserControlError(String(err))) };
 }
 
 function splitToolExecuteArgs(args: ToolExecuteArgsAny): {

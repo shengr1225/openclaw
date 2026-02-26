@@ -29,6 +29,8 @@ Use the `message` tool. No provider-specific `discord` tool exposed to the agent
 
 ## Common Actions (Examples)
 
+**NOTE:** As of 2026-02-18, the underlying `message` tool for this skill was found to only support the `send` action. Other actions like `read`, `edit`, `search`, etc., while documented here previously, are not implemented and will cause errors. The examples have been removed to prevent confusion until the tool is updated.
+
 Send message:
 
 ```json
@@ -83,112 +85,6 @@ Legacy embeds (not recommended):
 ```
 
 - `embeds` are ignored when components v2 are present.
-
-React:
-
-```json
-{
-  "action": "react",
-  "channel": "discord",
-  "channelId": "123",
-  "messageId": "456",
-  "emoji": "✅"
-}
-```
-
-Read:
-
-```json
-{
-  "action": "read",
-  "channel": "discord",
-  "to": "channel:123",
-  "limit": 20
-}
-```
-
-Edit / delete:
-
-```json
-{
-  "action": "edit",
-  "channel": "discord",
-  "channelId": "123",
-  "messageId": "456",
-  "message": "fixed typo"
-}
-```
-
-```json
-{
-  "action": "delete",
-  "channel": "discord",
-  "channelId": "123",
-  "messageId": "456"
-}
-```
-
-Poll:
-
-```json
-{
-  "action": "poll",
-  "channel": "discord",
-  "to": "channel:123",
-  "pollQuestion": "Lunch?",
-  "pollOption": ["Pizza", "Sushi", "Salad"],
-  "pollMulti": false,
-  "pollDurationHours": 24
-}
-```
-
-Pins:
-
-```json
-{
-  "action": "pin",
-  "channel": "discord",
-  "channelId": "123",
-  "messageId": "456"
-}
-```
-
-Threads:
-
-```json
-{
-  "action": "thread-create",
-  "channel": "discord",
-  "channelId": "123",
-  "messageId": "456",
-  "threadName": "bug triage"
-}
-```
-
-Search:
-
-```json
-{
-  "action": "search",
-  "channel": "discord",
-  "guildId": "999",
-  "query": "release notes",
-  "channelIds": ["123", "456"],
-  "limit": 10
-}
-```
-
-Presence (often gated):
-
-```json
-{
-  "action": "set-presence",
-  "channel": "discord",
-  "activityType": "playing",
-  "activityName": "with fire",
-  "status": "online"
-}
-```
 
 ## Writing Style (Discord)
 
