@@ -122,3 +122,5 @@ client_secret_1095450753327-uc4mieuq0rj7urddcvo6c7680ogd19gr.apps.googleusercont
 
 # Synthing
 **/.stfolder/
+.env.local
+client_secret_1095450753327-uc4mieuq0rj7urddcvo6c7680ogd19gr.apps.googleusercontent.com.json
