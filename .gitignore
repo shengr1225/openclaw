@@ -110,6 +110,8 @@ Swabble/build/
 
 # Generated protocol schema (produced via pnpm protocol:gen)
 dist/protocol.schema.json
+.env.local
+client_secret_1095450753327-uc4mieuq0rj7urddcvo6c7680ogd19gr.apps.googleusercontent.com.json
 .ant-colony/
 
 # Eclipse

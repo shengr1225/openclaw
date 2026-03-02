@@ -49,10 +49,14 @@ describe("browser client", () => {
 
   it("adds useful timeout messaging for abort-like failures", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("aborted")));
-    await expect(browserStatus("http://127.0.0.1:18791")).rejects.toThrow(/timed out/i);
+    const err = await browserStatus("http://127.0.0.1:18791").catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message).toMatch(/can't reach the openclaw browser control service/i);
+    expect(err.message).toMatch(/timed out/i);
+    expect(err.message).toMatch(/do not retry the browser tool/i);
   });
 
-  it("surfaces non-2xx responses with body text", async () => {
+  it("surfaces non-2xx responses with body text as primary error (no Can't reach wrapper)", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -62,9 +66,50 @@ describe("browser client", () => {
       } as unknown as Response),
     );
 
-    await expect(
-      browserSnapshot("http://127.0.0.1:18791", { format: "aria", limit: 1 }),
-    ).rejects.toThrow(/conflict/i);
+    const err = await browserSnapshot("http://127.0.0.1:18791", {
+      format: "aria",
+      limit: 1,
+    }).catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message).toBe("conflict");
+    expect(err.message).not.toMatch(/Can't reach/i);
+  });
+
+  it("surfaces relay-not-connected response as primary error (no connectivity wrapper)", async () => {
+    const relayMsg =
+      'Chrome extension relay is running, but no tab is connected. Click the OpenClaw Chrome extension icon on a tab to attach it (profile "chrome").';
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 409,
+        text: async () => relayMsg,
+      } as unknown as Response),
+    );
+
+    const err = await browserStatus("http://127.0.0.1:18791").catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message).toBe(relayMsg);
+    expect(err.message).not.toMatch(/Can't reach/i);
+  });
+
+  it("surfaces parameter-validation response as primary error (no connectivity wrapper)", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => "fields are required",
+      } as unknown as Response),
+    );
+
+    const err = await browserAct("http://127.0.0.1:18791", {
+      kind: "type",
+      ref: "1",
+    }).catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err.message).toBe("fields are required");
+    expect(err.message).not.toMatch(/Can't reach/i);
   });
 
   it("adds labels + efficient mode query params to snapshots", async () => {

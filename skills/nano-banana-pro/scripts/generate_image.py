@@ -29,7 +29,7 @@ def get_api_key(provided_key: str | None) -> str | None:
     return os.environ.get("GEMINI_API_KEY")
 
 
-def main():
+def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(
         description="Generate images using Nano Banana Pro (Gemini 3 Pro Image)"
     )
@@ -61,7 +61,7 @@ def main():
         help="Gemini API key (overrides GEMINI_API_KEY env var)"
     )
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Get API key
     api_key = get_api_key(args.api_key)
@@ -73,8 +73,16 @@ def main():
         sys.exit(1)
 
     # Import here after checking API key to avoid slow import on error
-    from google import genai
-    from google.genai import types
+    try:
+        from google import genai
+        from google.genai import types
+    except ModuleNotFoundError as e:
+        print("Error: Missing Python dependency 'google-genai'.", file=sys.stderr)
+        print("Install it with one of:", file=sys.stderr)
+        print("  1. uv run generate_image.py ... (auto-installs from script metadata)", file=sys.stderr)
+        print("  2. uv pip install google-genai pillow", file=sys.stderr)
+        print(f"Details: {e}", file=sys.stderr)
+        sys.exit(1)
     from PIL import Image as PILImage
 
     # Initialise client

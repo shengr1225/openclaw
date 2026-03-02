@@ -110,6 +110,7 @@ Notes
 
 - Set `GOG_ACCOUNT=you@gmail.com` to avoid repeating `--account`.
 - For scripting, prefer `--json` plus `--no-input`.
+- For Drive media downloads, prefer `scripts/gog-drive-download-safe.sh <fileId> --out ./file.ext --timeout-sec 600` to pre-check size and use custom timeout (avoids gog's default 30s client timeout path). For files above the size threshold, add `--allow-large`.
 - Sheets values can be passed via `--values-json` (recommended) or as inline rows.
 - Docs supports export/cat/copy. In-place edits require a Docs API client (not in gog).
 - Confirm before sending mail or creating events.
